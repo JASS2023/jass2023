@@ -64,4 +64,9 @@
             <arg name="veh" value="$(arg veh)"/>
     </include>
 
+	    <include file="$(find led_signal)/launch/led_signal_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+	</include>
+
+
 </launch>
