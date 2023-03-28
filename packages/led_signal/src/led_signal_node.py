@@ -18,24 +18,25 @@ class LEDSignalNode(DTROS):
         super(LEDSignalNode, self).__init__(node_name=node_name, node_type=NodeType.DRIVER)
         self.LEDspattern = [[0.0, 0.0, 1.0]] * 5
         self.pub_leds = rospy.Publisher(
-            "/db01/led_emitter_node/led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
+            "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
 
         # self._img_sub = rospy.Subscriber(
         #     "~image", CompressedImage, self.cb_image, queue_size=1, buff_size="20MB"
         # )
-        self.april_tags_sub = rospy.Subscriber("/db01/apriltag_detector_node/tags_id", Int32MultiArray, self.onDetectAprilTag, queue_size=1)
-        self.publishLEDs()
+        self.april_tags_sub = rospy.Subscriber("~construction_ap_tag", Int32MultiArray, self.onDetectAprilTag, queue_size=1)
+        # self.publishLEDs()
 
 
     def onDetectAprilTag(self, message):
-        self.LEDspattern = [[1.0, 0.0, 0.0]] * 5
-        rospy.sleep(5)
+        self.LEDspattern = [[0.0, 1.0, 0.0]] * 5
+        self.publishLEDs()
         self.LEDspattern = [[0.0, 0.0, 1.0]] * 5
+        self.publishLEDs()
 
     def publishLEDs(self):
         LEDPattern_msg = LEDPattern()
-        while True:
+        for k in range(1):
             for i in range(5):
                 rgba = ColorRGBA()
                 rgba.r = self.LEDspattern[i][0]
@@ -44,6 +45,7 @@ class LEDSignalNode(DTROS):
                 rgba.a = 1.0
                 LEDPattern_msg.rgb_vals.append(rgba)
                 self.pub_leds.publish(LEDPattern_msg)
+            rospy.sleep(1)
 
 
 if __name__ == "__main__":
