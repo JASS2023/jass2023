@@ -51,8 +51,12 @@
 	</include>
 
 		<!-- Deadreckoning (aka. Odometry)	-->
-	<include file="$(find deadreckoning)/launch/deadreckoning_node.launch">
+	<!-- <include file="$(find deadreckoning)/launch/deadreckoning_node.launch">
             <arg name="veh" value="$(arg veh)"/>
-    </include>
+    </include> -->
+
+	<include file="$(find odometry)/launch/odometry.launch">
+			<arg name="veh" value="$(arg veh)"/>
+	</include>
 
 </launch>
