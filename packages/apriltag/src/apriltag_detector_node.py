@@ -18,7 +18,7 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
 from duckietown_msgs.msg import BoolStamped
 
-MIN_AREA_TO_DEtECT = 3000
+MIN_AREA_TO_DEtECT = 2000
 
 CONSTRUCTION_SITE_ID = 12
 TRAFFIC_LIGHT_ID = 69
