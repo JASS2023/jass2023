@@ -30,11 +30,11 @@ class LEDSignalNode(DTROS):
 
 
     def onDetectedTrafficLight(self, message):
-        self.changeColor([[1.0, 0.0, 1.0]] * 5)
-        self.changeColor([[0.0, 1.0, 0.0]] * 5)
+        self.changeColor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 1.0], [0.0, 0.0, 0.0], [1.0, 0.0, 1.0]] * 5)
+        self.changeColor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]] * 5)
     def onDetectAprilTag(self, message):
-        self.changeColor([[0.0, 1.0, 0.0]] * 5)
-        self.changeColor([[0.0, 0.0, 1.0]] * 5)
+        self.changeColor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0]] * 5)
+        self.changeColor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
         # self.LEDspattern = [[0.0, 1.0, 0.0]] * 5
         # self.publishLEDs()
         # self.LEDspattern = [[0.0, 0.0, 1.0]] * 5
