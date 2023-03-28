@@ -25,13 +25,23 @@ class LEDSignalNode(DTROS):
         #     "~image", CompressedImage, self.cb_image, queue_size=1, buff_size="20MB"
         # )
         self.april_tags_sub = rospy.Subscriber("~construction_ap_tag", Int32MultiArray, self.onDetectAprilTag, queue_size=1)
+        self.traffic_light_atags_sub = rospy.Subscriber("~traffic_light_ap_tag", Int32MultiArray, self.onDetectedTrafficLight, queue_size=1)
+        # traffic_light_ap_tag
         # self.publishLEDs()
 
 
+    def onDetectedTrafficLight(self, message):
+        self.changeColor([[1.0, 0.0, 1.0]] * 5)
+        self.changeColor([[0.0, 1.0, 0.0]] * 5)
     def onDetectAprilTag(self, message):
-        self.LEDspattern = [[0.0, 1.0, 0.0]] * 5
-        self.publishLEDs()
-        self.LEDspattern = [[0.0, 0.0, 1.0]] * 5
+        self.changeColor([[0.0, 1.0, 0.0]] * 5)
+        self.changeColor([[0.0, 0.0, 1.0]] * 5)
+        # self.LEDspattern = [[0.0, 1.0, 0.0]] * 5
+        # self.publishLEDs()
+        # self.LEDspattern = [[0.0, 0.0, 1.0]] * 5
+        # self.publishLEDs()
+    def changeColor(self, led_pattern):
+        self.LEDspattern = led_pattern
         self.publishLEDs()
 
     def publishLEDs(self):
