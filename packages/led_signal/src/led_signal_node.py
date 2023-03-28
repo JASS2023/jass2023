@@ -20,7 +20,6 @@ class LEDSignalNode(DTROS):
         self.pub_leds = rospy.Publisher(
             "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
-
         # self._img_sub = rospy.Subscriber(
         #     "~image", CompressedImage, self.cb_image, queue_size=1, buff_size="20MB"
         # )
