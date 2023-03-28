@@ -1,3 +1,5 @@
+#!../venv/bin/python3
+
 import roslibpy
 import time
 import argparse
