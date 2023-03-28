@@ -92,6 +92,8 @@ class AprilTagDetector(DTROS):
 
     def foundTag(self, target_tag_id, markers):
         marker_id = [i.tag_id for i in markers]
+        if target_tag_id not in marker_id:
+            return
         marker_corners = [i.corners for i in markers]
         # self.log(f'detected marker from apriltag {marker_id}')
         # for i in markers:
