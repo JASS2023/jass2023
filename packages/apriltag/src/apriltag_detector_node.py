@@ -20,11 +20,18 @@ from duckietown_msgs.msg import BoolStamped
 
 MIN_AREA_TO_DEtECT = 3000
 
+CONSTRUCTION_SITE_ID = 12
+TRAFFIC_LIGHT_ID = 69
+
 
 def findArea(corners):
     length1 = math.sqrt((corners[0][0] - corners[1][0]) ** 2 + (corners[0][1] - corners[1][1]) ** 2)
     length2 = math.sqrt((corners[1][0] - corners[2][0]) ** 2 + (corners[1][1] - corners[2][1]) ** 2)
     return length2 * length1
+
+
+def plain_data():
+    return Int32MultiArray(data=[1])
 
 
 class AprilTagDetector(DTROS):
@@ -45,6 +52,9 @@ class AprilTagDetector(DTROS):
 
         self.construction_april_tag_pub = rospy.Publisher(
             '~construction_ap_tag', Int32MultiArray, queue_size=1
+        )
+        self.traffic_light_april_tag_pub = rospy.Publisher(
+            '~traffic_light_ap_tag', Int32MultiArray, queue_size=1
         )
         self.counter = 0
         self.stop_sub = rospy.Subscriber(
@@ -80,6 +90,23 @@ class AprilTagDetector(DTROS):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return self.detector.detect(gray)
 
+    def foundTag(self, target_tag_id, markers):
+        marker_id = [i.tag_id for i in markers]
+        marker_corners = [i.corners for i in markers]
+        # self.log(f'detected marker from apriltag {marker_id}')
+        # for i in markers:
+        #     self.log(f'detected marker {i.corners}')
+
+        size_of_detected_area = findArea(corners=marker_corners[marker_id.index(target_tag_id)])
+        if size_of_detected_area <= MIN_AREA_TO_DEtECT:
+            # do nothing, tag is not close enough
+            return
+        self.log(f'detected marker from apriltag {target_tag_id}, with area {size_of_detected_area}')
+        if target_tag_id == CONSTRUCTION_SITE_ID:
+            self.construction_april_tag_pub.publish(plain_data())
+        elif target_tag_id == TRAFFIC_LIGHT_ID:
+            self.traffic_light_april_tag_pub.publish(plain_data())
+
     def cb_image(self, msg):
         if self.start_detect:
             img = self.bridge.compressed_imgmsg_to_cv2(msg)
@@ -107,15 +134,19 @@ class AprilTagDetector(DTROS):
                 img = self.bridge.compressed_imgmsg_to_cv2(msg)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 markers = self._findAprilTags(img)
-                marker_id = [i.tag_id for i in markers]
-                marker_corners = [i.corners for i in markers]
-                # self.log(f'detected marker from apriltag {marker_id}')
-                if len(marker_id) != 0:
-                    if 12 in marker_id:
-                        self.log(f'detected marker from apriltag {12}')
-                        if findArea(corners=marker_corners[marker_id.index(12)]) > MIN_AREA_TO_DEtECT:
-                            self.log(f'successful, area is {findArea(corners=marker_corners[marker_id.index(12)])}')
-                            self.construction_april_tag_pub.publish(Int32MultiArray(data=[1]))
+                self.foundTag(CONSTRUCTION_SITE_ID, markers)
+                self.foundTag(TRAFFIC_LIGHT_ID, markers)
+
+                # marker_id = [i.tag_id for i in markers]
+                # marker_corners = [i.corners for i in markers]
+                # area = findArea(corners=marker_corners[marker_id.index(12)])
+                # # self.log(f'detected marker from apriltag {marker_id}')
+                # if len(marker_id) != 0:
+                #     if 12 in marker_id:
+                #         self.log(f'detected marker from apriltag {12}')
+                #         if findArea(corners=marker_corners[marker_id.index(12)]) > MIN_AREA_TO_DEtECT:
+                #             self.log(f'successful, area is {findArea(corners=marker_corners[marker_id.index(12)])}')
+                #             self.construction_april_tag_pub.publish(Int32MultiArray(data=[1]))
                 self.counter = 1
             else:
                 self.counter += 1
@@ -125,5 +156,3 @@ if __name__ == "__main__":
     node = AprilTagDetector()
     # spin forever
     rospy.spin()
-
-
