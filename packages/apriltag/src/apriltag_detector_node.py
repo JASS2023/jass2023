@@ -154,18 +154,23 @@ class AprilTagDetector(DTROS):
             else:
                 self.counter += 1
 
-def calculatePointAbove(bottom, top):
-    # Get the slope and intercept of the line L
+
+def calculate_point_above(bottom, top):
+    # Get the slope and intercept of the line L that points bottom and top belong to
     x1, y1 = top
     x2, y2 = bottom
-    m = 0 if (x2-x1 == 0) else (y2 - y1) / (x2 - x1)
+    # should not divide by zero (if line is in the form of y=b)
+    m = 0 if (x2 - x1 == 0) else (y2 - y1) / (x2 - x1)
     b = y1 - m * x1
 
-    dy = y1-y2
-    y3 = (y1+dy) * 1.0
-    x3 = (y3-b)/m
+    dy = y1 - y2
+    # calculate the new point that belongs to the line L and is dy above the top point
+    y3 = (y1 + dy) * 1.0
+    x3 = (y3 - b) / m
     new_top = (int(x3), int(y3))
     return new_top
+
+
 def calculate_corners_of_traffic_lights(img, atag_detection_corners):
     corners = atag_detection_corners
     #
@@ -181,8 +186,8 @@ def calculate_corners_of_traffic_lights(img, atag_detection_corners):
     #
     # [3]                      [2]
     #
-    new_tl = calculatePointAbove(corners[3], corners[0])
-    new_tr = calculatePointAbove(corners[2], corners[1])
+    new_tl = calculate_point_above(corners[3], corners[0])
+    new_tr = calculate_point_above(corners[2], corners[1])
     new_corners = new_tl, new_tr, tuple(corners[1]), tuple(corners[0])
     return new_corners
 
@@ -197,7 +202,7 @@ def crop_traffic_light_img(img, atag_detection_corners):
 
             Returns:
                 The cropped image (as a NumPy array).
-            """
+    """
     (tl, tr, br, bl) = calculate_corners_of_traffic_lights(img, atag_detection_corners)
     # Define three non-collinear points in the source image (in clockwise order, starting from tl)
     src_pts = np.array([tl, tr, bl], dtype=np.float32)
@@ -215,6 +220,7 @@ def crop_traffic_light_img(img, atag_detection_corners):
 
     # Return the cropped image
     return cropped_img
+
 
 if __name__ == "__main__":
     node = AprilTagDetector()
