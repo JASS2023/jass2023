@@ -185,17 +185,6 @@ def calculate_corners_of_traffic_lights(img, atag_detection_corners):
     new_tr = calculatePointAbove(corners[2], corners[1])
     new_corners = new_tl, new_tr, tuple(corners[1]), tuple(corners[0])
     return new_corners
-def crop_image(img, tl, tr, br, bl):
-    """
-        Crops an image to the specified quadrilateral area defined by the corner points.
-
-        Parameters:
-            img: input image (as a NumPy array).
-            bl, br, tl, tr: (x, y) tuples of the four corner points (in clockwise order, starting from bl).
-
-        Returns:
-            The cropped image (as a NumPy array).
-        """
 
 
 def crop_traffic_light_img(img, atag_detection_corners):
