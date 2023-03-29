@@ -73,7 +73,6 @@ class AprilTagDetector(DTROS):
         self.log('apriltag_init')
         self.switcher = True
 
-
     def update_switcher(self, msg):
         self.switcher = True
 
