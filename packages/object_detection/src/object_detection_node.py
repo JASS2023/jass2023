@@ -7,13 +7,15 @@ from time import perf_counter
 import requests
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
-from sensor_msgs.msg import CompressedImage, Float32MultiArray
+from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import Float32MultiArray
+
 import json
 
-COUNTER_FREQUENCY = 10
+COUNTER_FREQUENCY = 100
 
-IP = '192.168.0.176'
-PORT = 8000
+IP = '192.168.0.43'
+PORT = 8080
 
 
 class ObjectDetectionNode(DTROS):
@@ -46,8 +48,13 @@ class ObjectDetectionNode(DTROS):
         
             # Send the image to the server and receive the response
             response = requests.post(f"http://{IP}:{PORT}/detect_objects", data=send_package)
-            response = json.loads(response)
+            
+            if response is None:
+                self.log("kekis")
 
+            self.log(response.content)
+            response = json.loads(response.content)
+            
             if response is None:
                 return
 
@@ -61,6 +68,7 @@ class ObjectDetectionNode(DTROS):
             reply = Float32MultiArray()
             reply.data = response
             self._detected_objs.publish(reply)
+
 
 
 if __name__ == "__main__":
