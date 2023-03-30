@@ -1,0 +1,17 @@
+<launch>
+	<arg name="node_name" value="led_signal_node"/>
+	<arg name="veh" doc="Name of vehicle. ex: megaman"/>
+<!--   <arg name="param_file_name" default="LED_protocol" doc="Specify a param file. ex:megaman"/> -->
+	<arg name="robot_type" default="duckiebot" doc="Type of robot"/>
+
+	<group ns="$(arg veh)">
+	    <node pkg="led_signal" type="led_signal_node.py"  name="$(arg node_name)" output="screen" >
+	        <remap from="led_signal_node/led_pattern" to="led_emitter_node/led_pattern"/>
+	        <remap from="led_signal_node/construction_ap_tag" to="apriltag_detector_node/construction_ap_tag"/>
+	        <remap from="led_signal_node/traffic_light_ap_tag" to="apriltag_detector_node/traffic_light_ap_tag"/>
+<!-- 			<rosparam command="load" file="$(find led_signal)/config/$(arg node_name)/$(arg param_file_name).yaml"/> -->
+			<param name="robot_type" value="$(arg robot_type)"/>
+		</node>
+	</group>
+
+</launch>

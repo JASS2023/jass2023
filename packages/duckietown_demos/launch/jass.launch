@@ -59,9 +59,17 @@
 			<arg name="veh" value="$(arg veh)"/>
 	</include>
 
+<<<<<<< HEAD
 	<!--Launch Ros Mqtt Bridge-->
 	<include file="$(find mqtt_bridge)/launch/demo.launch">
             <arg name="veh" value="$(arg veh)"/>
     </include>
+
+=======
+>>>>>>> 572740630868d3d8b31f7111da7d6a586914504a
+	    <include file="$(find led_signal)/launch/led_signal_node.launch">
+            <arg name="veh" value="$(arg veh)"/>
+	</include>
+
 
 </launch>

@@ -71,6 +71,7 @@ def detect_objects():
         # Run the model on the image
         pred = model(img)
         # pred.show()
+
         # pred.save()
 
         # Boxes object for bbox outputs with probability and class
@@ -90,12 +91,14 @@ def detect_objects():
                 response = (closest[0].item(), closest[1].item(), closest[2].item(), closest[3].item(), 5) # emergency stop case
             else:
                 boxes = boxes[boxes[:, 5] == 1] # leaving only duckies            
+
                 sizes = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
                 idx = sizes.argmax().item()
                 x1, y1, x2, y2, prob, label = boxes[idx]
                 response = (x1.item(), y1.item(), x2.item(), y2.item(), object_position(boxes[idx]))
         
         print(response)
+
 
         # pred.show() # display
         # print(pred.xywh) # print

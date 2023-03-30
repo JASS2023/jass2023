@@ -10,6 +10,7 @@ from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Float32MultiArray, String
 
+
 import json
 
 COUNTER_FREQUENCY = 5
@@ -31,6 +32,7 @@ class ObjectDetectionNode(DTROS):
 
         self._detected_objs = rospy.Publisher(
             "~objects_detected", String, queue_size=1, dt_topic_type=TopicType.DRIVER
+
         )
         
 
@@ -47,6 +49,7 @@ class ObjectDetectionNode(DTROS):
             self.log(f"Sending package of size {len(send_package)}")
         
             # Send the image to the server and receive the response
+
             response = requests.post(f"http://{IP}:{PORT}/detect_objects", data=send_package)
             
             if response is None:
