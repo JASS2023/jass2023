@@ -117,15 +117,15 @@ class LEDEmitterNode(DTROS):
         self.current_pattern_name = "LIGHT_OFF"
         self.changePattern(self.current_pattern_name)
 
-        # Initialize the timer
-        self.frequency = 1.0 / self._LED_protocol["signals"]["CAR_SIGNAL_A"]["frequency"]
-        self.is_on = False
-        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.frequency / 2.0), self._cycle_timer)
-
         # Publishers
         self.pub_leds = rospy.Publisher(
             "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
+
+        # Initialize the timer
+        self.frequency = 1.0 / self._LED_protocol["signals"]["CAR_SIGNAL_A"]["frequency"]
+        self.is_on = False
+        self.cycle_timer = rospy.Timer(rospy.Duration.from_sec(self.frequency / 2.0), self._cycle_timer)
 
         # Services
         self.srv_set_LED_ = rospy.Service(

@@ -16,7 +16,7 @@ import json
 
 COUNTER_FREQUENCY = 5
 
-IP = '192.168.0.13'
+IP = '192.168.0.43'
 PORT = 8080
 
 
