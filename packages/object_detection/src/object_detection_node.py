@@ -49,8 +49,6 @@ class ObjectDetectionNode(DTROS):
             # Send the image to the server and receive the response
 
             response = requests.post(f"http://{IP}:{PORT}/detect_objects", data=send_package)
-
-
             
             if response is None:
                 self.log("kekis")

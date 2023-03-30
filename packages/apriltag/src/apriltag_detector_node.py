@@ -43,6 +43,7 @@ class AprilTagDetector(DTROS):
         super(AprilTagDetector, self).__init__(
             node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION
         )
+        self.bot_name = os.environ["VEHICLE_NAME"]
         self.detector = apriltag.Detector(apriltag.DetectorOptions(families="tag36h11"))
         self.start_detect = False
         # self.start_regular_detect = False
@@ -93,6 +94,7 @@ class AprilTagDetector(DTROS):
         return self.detector.detect(gray)
 
     def find_tags(self, target_tag_id, markers, img=None):
+
         marker_id = [i.tag_id for i in markers]
         if target_tag_id not in marker_id:
             return
@@ -111,6 +113,7 @@ class AprilTagDetector(DTROS):
             print(msg)
             message.data = msg
             self.traffic_light_april_tag_pub.publish(message)
+
             if msg == "red":
                 os.system(f'rosparam set /{self.bot_name}/kinematics_node/gain 0.0')
             else:
@@ -130,6 +133,7 @@ class AprilTagDetector(DTROS):
                 if 12 in marker_id:
                     self.log(f'detected marker from apriltag {12}')
                     if find_area(corners=marker_corners[marker_id.index(12)]) > MIN_AREA_TO_DEtECT:
+
                         self.log(f'successful')
                         self.construction_april_tag_pub.publish(Int32MultiArray(data=[1]))
                 else:
@@ -143,6 +147,7 @@ class AprilTagDetector(DTROS):
                 markers = self._find_april_tags(img)
                 self.find_tags(CONSTRUCTION_SITE_ID, markers)
                 self.find_tags(TRAFFIC_LIGHT_ID, markers, img)
+
                 self.counter = 1
             else:
                 self.counter += 1
@@ -209,19 +214,6 @@ def calculate_corners_of_traffic_lights(img, atag_detection_corners):
     new_tr = calculatePointAbove(corners[2], corners[1])
     new_corners = new_tl, new_tr, tuple(corners[1]), tuple(corners[0])
     return new_corners
-
-
-def crop_image(img, tl, tr, br, bl):
-    """
-        Crops an image to the specified quadrilateral area defined by the corner points.
-
-        Parameters:
-            img: input image (as a NumPy array).
-            bl, br, tl, tr: (x, y) tuples of the four corner points (in clockwise order, starting from bl).
-
-        Returns:
-            The cropped image (as a NumPy array).
-        """
 
 
 def crop_traffic_light_img(img, atag_detection_corners):
