@@ -97,7 +97,6 @@ def detect_objects():
         
         print(response)
 
-
         # pred.show() # display
         # print(pred.xywh) # print
         

@@ -8,11 +8,11 @@ import requests
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, UInt8
 
 import json
 
-COUNTER_FREQUENCY = 100
+COUNTER_FREQUENCY = 5
 
 IP = '192.168.0.43'
 PORT = 8080
@@ -30,7 +30,7 @@ class ObjectDetectionNode(DTROS):
         )
 
         self._detected_objs = rospy.Publisher(
-            "~objects_detected", Float32MultiArray, queue_size=1, dt_topic_type=TopicType.DRIVER
+            "~objects_detected", UInt8, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
         
 
@@ -52,21 +52,24 @@ class ObjectDetectionNode(DTROS):
             if response is None:
                 self.log("kekis")
 
+
             self.log(response.content)
             response = json.loads(response.content)
             
-            if response is None:
+            if not response:
                 return
+            
+            self.log(response)
 
             # Capture end time
             t_end = perf_counter()
 
             # Not sure what kind of objects will be sent (if it is an array of integers, it will be awful)
             self.log(f"Received response: {response} after {t_end - t_start} seconds")
-            
             # mb receive "the most dangerous" object
-            reply = Float32MultiArray()
-            reply.data = response
+            
+            reply = UInt8()
+            reply.data = response[4]
             self._detected_objs.publish(reply)
 
 
