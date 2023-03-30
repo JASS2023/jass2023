@@ -7,6 +7,7 @@ import numpy as np
 import apriltag
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
+import os
 
 import std_msgs.msg
 from turbojpeg import TurboJPEG, TJPF_GRAY
@@ -41,6 +42,7 @@ class AprilTagDetector(DTROS):
         super(AprilTagDetector, self).__init__(
             node_name="apriltag_detector_node", node_type=NodeType.PERCEPTION
         )
+        self.bot_name = os.environ["VEHICLE_NAME"]
         self.detector = apriltag.Detector(apriltag.DetectorOptions(families="tag36h11"))
         self.start_detect = False
         # self.start_regular_detect = False
@@ -88,19 +90,16 @@ class AprilTagDetector(DTROS):
             self.start_detect = True
             self.switcher = False
 
-    def _findAprilTags(self, image):
+    def _find_april_tags(self, image):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return self.detector.detect(gray)
 
-    def foundTag(self, target_tag_id, markers, img=None):
+    def find_tag(self, target_tag_id, markers, img=None):
+
         marker_id = [i.tag_id for i in markers]
         if target_tag_id not in marker_id:
             return
         marker_corners = [i.corners for i in markers]
-
-        # self.log(f'detected marker from apriltag {marker_id}')
-        # for i in markers:
-        #     self.log(f'detected marker {i.corners}')
 
         size_of_detected_area = findArea(corners=marker_corners[marker_id.index(target_tag_id)])
         if size_of_detected_area <= MIN_AREA_TO_DEtECT:
@@ -114,13 +113,17 @@ class AprilTagDetector(DTROS):
             msg = find_traffic_light_color(cropped_image=crop_traffic_light_img(img, marker_corners[0]))
             print(msg)
             message.data = msg
-            self.traffic_light_april_tag_pub.publish(message)
+            if msg == "red":
+                os.system(f'rosparam set /{self.bot_name}/kinematics_node/gain 0.0')
+            else:
+                os.system(f'rosparam set /{self.bot_name}/kinematics_node/gain 1.0')
+
 
     def cb_image(self, msg):
         if self.start_detect:
             img = self.bridge.compressed_imgmsg_to_cv2(msg)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            markers = self._findAprilTags(img)
+            markers = self._find_april_tags(img)
             marker_id = [i.tag_id for i in markers]
             marker_corners = [i.corners for i in markers]
             self.log(f'detected marker from apriltag {marker_id}')
@@ -140,9 +143,10 @@ class AprilTagDetector(DTROS):
             if self.counter % 6 == 0:
                 img = self.bridge.compressed_imgmsg_to_cv2(msg)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                markers = self._findAprilTags(img)
-                self.foundTag(CONSTRUCTION_SITE_ID, markers)
-                self.foundTag(TRAFFIC_LIGHT_ID, markers, img)
+                markers = self._find_april_tags(img)
+                self.find_tag(CONSTRUCTION_SITE_ID, markers)
+                self.find_tag(TRAFFIC_LIGHT_ID, markers, img)
+
                 self.counter = 1
             else:
                 self.counter += 1
@@ -156,7 +160,10 @@ def find_mean_hue(image):
             if element[2] == 0 & element[1] == 0:
                 continue
             counter += 1
-            _sum += element[0]
+            if element[0] > 160:
+                _sum += 180 - element[0]
+            else:
+                _sum += element[0]
     return _sum // counter
 
 
@@ -166,10 +173,8 @@ def find_traffic_light_color(cropped_image):
     mask = cv2.inRange(cv2.cvtColor(cropped_image, cv2.COLOR_RGB2HSV), lower_bound, higher_bound)
     detected_colors = cv2.bitwise_and(cropped_image, cropped_image, mask=mask)
     if find_mean_hue(cv2.cvtColor(detected_colors, cv2.COLOR_RGB2HSV)) < 30:
-        print("red")
         return "red"
     else:
-        print("green")
         return "green"
 
 
@@ -206,19 +211,6 @@ def calculate_corners_of_traffic_lights(img, atag_detection_corners):
     new_tr = calculatePointAbove(corners[2], corners[1])
     new_corners = new_tl, new_tr, tuple(corners[1]), tuple(corners[0])
     return new_corners
-
-
-def crop_image(img, tl, tr, br, bl):
-    """
-        Crops an image to the specified quadrilateral area defined by the corner points.
-
-        Parameters:
-            img: input image (as a NumPy array).
-            bl, br, tl, tr: (x, y) tuples of the four corner points (in clockwise order, starting from bl).
-
-        Returns:
-            The cropped image (as a NumPy array).
-        """
 
 
 def crop_traffic_light_img(img, atag_detection_corners):
