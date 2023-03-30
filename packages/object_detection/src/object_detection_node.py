@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import rospy
 import pickle
-from time import perf_counter
+from time import perf_counter, time
 import requests
 
 from duckietown.dtros import DTROS, NodeType, TopicType, DTParam, ParamType
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import Float32MultiArray, UInt8
+from std_msgs.msg import Float32MultiArray, String
+
 
 import json
 
@@ -30,7 +31,8 @@ class ObjectDetectionNode(DTROS):
         )
 
         self._detected_objs = rospy.Publisher(
-            "~objects_detected", UInt8, queue_size=1, dt_topic_type=TopicType.DRIVER
+            "~objects_detected", String, queue_size=1, dt_topic_type=TopicType.DRIVER
+
         )
         
 
@@ -66,11 +68,20 @@ class ObjectDetectionNode(DTROS):
             t_end = perf_counter()
 
             # Not sure what kind of objects will be sent (if it is an array of integers, it will be awful)
-            self.log(f"Received response: {response} after {t_end - t_start} seconds")
+            #self.log(f"Received response: {response} after {t_end - t_start} seconds")
             # mb receive "the most dangerous" object
             
-            reply = UInt8()
-            reply.data = response[4]
+            reply = String()
+            obstacle_info = {}
+            obstacle_info["message"] = "discover_obstacle"
+            obstacle_info["id"] = -1
+            obstacle_info["timestamp"] = time()
+            obstacle_info["label"] = "duckie"
+            obstacle_info["duckieId"] = -1
+            obstacle_info["distance"] = response[4]
+            reply.data = json.dumps(obstacle_info)
+            self.log(reply.data)
+
             self._detected_objs.publish(reply)
 
 

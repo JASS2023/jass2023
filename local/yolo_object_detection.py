@@ -68,35 +68,37 @@ def detect_objects():
         img = Image.open(io.BytesIO(img))
         # Convert the image to a pytorch tensor
         # img = gpu_transform(img).unsqueeze(0).to(device)
-        starttime = time.time()
         # Run the model on the image
         pred = model(img)
-        pred.show()
+        # pred.show()
+
         # pred.save()
 
         # Boxes object for bbox outputs with probability and class
     
-        response = None
+        response = (0, 0, 0, 0, 0)
 
-        if len(pred.xyxy[0]):
-            boxes = pred.xyxy[0]
+        boxes = pred.xyxy[0]
+        
+        
+        if len(boxes):
+
             # print(boxes)
             #code for the emergency stop
-
-            closest = boxes[boxes[:, -1].argmax().item()]
+            closest = boxes[boxes[:, 3].argmax().item()]
             if  closest[3].item() > 420:
                 # print('ALARM!')
-                response = (closest[0].item(), closest[1].item(), closest[2].item(), closest[3].item(), 5) #emergency stop case
-            
-            else:            
-                boxes = boxes[boxes[:, 5] == 1] #leaving only duckies
+                response = (closest[0].item(), closest[1].item(), closest[2].item(), closest[3].item(), 5) # emergency stop case
+            else:
+                boxes = boxes[boxes[:, 5] == 1] # leaving only duckies            
+
                 sizes = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
                 idx = sizes.argmax().item()
                 x1, y1, x2, y2, prob, label = boxes[idx]
                 response = (x1.item(), y1.item(), x2.item(), y2.item(), object_position(boxes[idx]))
+        
         print(response)
 
-        endtime = time.time()
 
         # pred.show() # display
         # print(pred.xywh) # print

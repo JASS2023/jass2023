@@ -5,6 +5,7 @@
     <group ns="$(arg veh)">
         <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen">
             <remap from="object_detection_node/image" to="camera_node/image/compressed" />
+            <remap from="object_detection_node/objects_detected" to="mqtt_bridge/obstacle"/>
         </node>
     </group>
 </launch>
