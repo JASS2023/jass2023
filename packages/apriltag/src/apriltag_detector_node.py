@@ -95,6 +95,7 @@ class AprilTagDetector(DTROS):
         return self.detector.detect(gray)
 
     def find_tag(self, target_tag_id, markers, img=None):
+
         marker_id = [i.tag_id for i in markers]
         if target_tag_id not in marker_id:
             return
@@ -116,7 +117,7 @@ class AprilTagDetector(DTROS):
                 os.system(f'rosparam set /{self.bot_name}/kinematics_node/gain 0.0')
             else:
                 os.system(f'rosparam set /{self.bot_name}/kinematics_node/gain 1.0')
-            self.traffic_light_april_tag_pub.publish(message)
+
 
     def cb_image(self, msg):
         if self.start_detect:
@@ -145,6 +146,7 @@ class AprilTagDetector(DTROS):
                 markers = self._find_april_tags(img)
                 self.find_tag(CONSTRUCTION_SITE_ID, markers)
                 self.find_tag(TRAFFIC_LIGHT_ID, markers, img)
+
                 self.counter = 1
             else:
                 self.counter += 1
