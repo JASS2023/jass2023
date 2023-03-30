@@ -22,8 +22,10 @@ class LEDSignalNode(DTROS):
             "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
 
-        self.april_tags_sub = rospy.Subscriber("~construction_ap_tag", Int32MultiArray, self.on_detect_construction_sign, queue_size=1)
-        self.traffic_light_atags_sub = rospy.Subscriber("~traffic_light_ap_tag", std_msgs.msg.String, self.on_detect_traffic_light, queue_size=1)
+        self.april_tags_sub = rospy.Subscriber("~construction_ap_tag", Int32MultiArray,
+                                               self.on_detect_construction_sign, queue_size=1)
+        self.traffic_light_atags_sub = rospy.Subscriber("~traffic_light_ap_tag", std_msgs.msg.String,
+                                                        self.on_detect_traffic_light, queue_size=1)
 
     def on_detect_traffic_light(self, message):
         if message.data == "red":
