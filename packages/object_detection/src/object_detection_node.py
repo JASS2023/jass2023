@@ -62,28 +62,29 @@ class ObjectDetectionNode(DTROS):
             
             self.log(response[4])
 
-            obstacle_info = {
-                "message": "discover_obstacle",
-                "id":  -1,
-                "timestamp": time(),
-                "label": "duckie",
-                "duckieId": -1,
-                "case": "Alarm! Too close. Stopping"
-            }
-
-            stop_cmd = f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain'
-            if response[4] == 5:
-                os.system(f'{stop_cmd} 0.0')
-            elif response[4] != 0:
-                obstacle_info["case"] = CASES[response[4]]
-            else:
-                os.system(f'{stop_cmd} 1.0')
-                obstacle_info["message"] = "nothing's_on_the_way"
-                obstacle_info["case"] = CASES[response[4]]
-
+            cases = {1: 'left',
+                     2: 'close',
+                     3: 'right',
+                     4: 'far',
+                     5: 'alarm',
+                     0: 'nothing'}
+            os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 0.0')
             reply = String()
+            obstacle_info = {}
+            obstacle_info["message"] = "discover_obstacle"
+            obstacle_info["id"] = -1
+            obstacle_info["timestamp"] = time()
+            obstacle_info["label"] = "duckie"
+            obstacle_info["duckieId"] = -1
+            if response[4] == 5:
+                os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 0.0')
+            elif response[4] == 0:
+                os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
+                obstacle_info["message"] = "nothing"
+            else:
+                os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
+            obstacle_info["case"] = cases[response[4]]
             reply.data = json.dumps(obstacle_info)
-            
             self.log(reply.data)
             self._detected_objs.publish(reply)
 
