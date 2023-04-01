@@ -28,7 +28,7 @@ class LEDSignalNode(DTROS):
             node_name=node_name, node_type=NodeType.DRIVER)
 
         self.LEDsPattern = [[0.0, 0.0, 1.0]] * 5
-
+        self.already_sent = True
         # Publisher
         self.pub_leds = rospy.Publisher(
             "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
@@ -71,11 +71,14 @@ class LEDSignalNode(DTROS):
         # self.change_color(YELLOW)
 
         if msg["data"]["value"] == "in_zone":
+            self.already_sent = False
             self.change_color(YELLOW, sleep_time=0.3)
             self.change_color(ORANGE, sleep_time=0.3)
             # self.change_color(BASIC, sleep_time=0.3)
         else:
-            self.change_color(BASIC)
+            if not self.already_sent:
+                self.already_sent = True
+                self.change_color(BASIC)
 
 
     def on_detect_traffic_light(self, msg):
