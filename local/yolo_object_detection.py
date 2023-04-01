@@ -30,11 +30,11 @@ def object_position(res):
     #if it is closer than 20cm
     # if (res[3] > 290):
     #     return 5
-    if (res[3] > 300):
-        if res[0] < 640/3 and res[2] < 640/3:
+    if (res[3] > 230):
+        if res[0] < 640/5 and res[2] < 640/5:
             return 1 # It is on the oncomming traffic
         else:
-            if res[0] < 640*2/3 and res[2] < 640*2/3:
+            if res[0] < 640*4/5 and res[2] < 640*4/5:
                 return 5 # It is on our way
             else:
                 return 3 # It is on the roadside
@@ -52,6 +52,7 @@ def object_position(res):
 """
 @app.route('/detect_objects', methods=['POST'])
 def detect_objects():
+    t = time.time()
     # Extract the incoming image
     try:
         # Get the image from the request and unpickle it
@@ -77,11 +78,13 @@ def detect_objects():
             try:
                 idx = sizes.argmax().item()
             except:
+                print((0,0,0,0,0))
                 return jsonify((0,0,0,0,0))
             x1, y1, x2, y2, prob, label = boxes[idx]
             # if  closest[3].item() > 420:
             # response = (closest[0].item(), closest[1].item(), closest[2].item(), closest[3].item(), 5) #emergency stop case
-            if  y2.item() > 350:
+            c = object_position(boxes[idx])
+            if  c == 5:
                 response = (x1.item(), y1.item(), x2.item(), y2.item(), 5)
                 pred.show()
             else:
@@ -89,7 +92,8 @@ def detect_objects():
                 # sizes = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
                 # idx = sizes.argmax().item()
                 # x1, y1, x2, y2, prob, label = boxes[idx]
-                response = (x1.item(), y1.item(), x2.item(), y2.item(), object_position(boxes[idx]))
+                response = (x1.item(), y1.item(), x2.item(), y2.item(), c)
+        print(time.time() - t)
         print(response)
         endtime = time.time()
         # pred.show() # display

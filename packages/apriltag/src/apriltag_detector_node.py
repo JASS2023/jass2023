@@ -7,6 +7,7 @@ import numpy as np
 import apriltag
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
+from PIL import Image
 
 import os
 
@@ -22,7 +23,9 @@ from sensor_msgs.msg import CompressedImage
 from geometry_msgs.msg import Transform, Vector3, Quaternion
 from duckietown_msgs.msg import BoolStamped
 
-MIN_AREA_TO_DEtECT = 2000
+MIN_AREA_TO_DEtECT = 1000
+
+DETECTION_RATE = 1
 
 CONSTRUCTION_SITE_ID = 12
 TRAFFIC_LIGHT_ID = 69
@@ -141,13 +144,12 @@ class AprilTagDetector(DTROS):
                     self.marker_id_pub.publish(marker_msg)
                     self.start_detect = False
         else:
-            if self.counter % 6 == 0:
+            if self.counter % DETECTION_RATE == 0:
                 img = self.bridge.compressed_imgmsg_to_cv2(msg)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 markers = self._find_april_tags(img)
-                self.find_tags(CONSTRUCTION_SITE_ID, markers)
                 self.find_tags(TRAFFIC_LIGHT_ID, markers, img)
-
+                self.find_tags(CONSTRUCTION_SITE_ID, markers)
                 self.counter = 1
             else:
                 self.counter += 1
@@ -156,28 +158,43 @@ class AprilTagDetector(DTROS):
 def find_mean_hue(image):
     counter = 0
     _sum = 0
+    red = 0
+    green = 0
     for sample in image:
         for element in sample:
             if element[2] == 0 & element[1] == 0:
                 continue
             counter += 1
-            if element[0] > 160:
-                _sum += 180 - element[0]
-            else:
-                _sum += element[0]
-    return _sum // counter
+            red += element[0]
+            green += element[2]
+            # if element[0] > 160:
+            #     _sum += 180 - element[0]
+            # else:
+            #     _sum += element[0]
+    # return _sum // counter
+    if red - 20 > green:
+        print(f'Red: {red}')
+        print(f'Green: {green}')
+        return 1
+    else:
+        print(f'Red: {red}')
+        print(f'Green: {green}')
+        return 50
 
 
 def find_traffic_light_color(cropped_image):
-    lower_bound = np.array([0, 0, 175], dtype="uint8")
+    lower_bound = np.array([0, 0, 190], dtype="uint8")
     higher_bound = np.array([255, 200, 255], dtype="uint8")
     mask = cv2.inRange(cv2.cvtColor(cropped_image, cv2.COLOR_RGB2HSV), lower_bound, higher_bound)
     detected_colors = cv2.bitwise_and(cropped_image, cropped_image, mask=mask)
-    hue = find_mean_hue(cv2.cvtColor(detected_colors, cv2.COLOR_RGB2HSV))
+    # hue = find_mean_hue(cv2.cvtColor(detected_colors, cv2.COLOR_RGB2HSV))
+    hue = find_mean_hue(detected_colors)
     print(hue)
-    if hue < 30:
+    if hue < 40:
         return "red"
     else:
+        # cv2.imshow("blablabla", detected_colors)
+        # Image.fromarray(detected_colors).show()
         return "green"
 
 
