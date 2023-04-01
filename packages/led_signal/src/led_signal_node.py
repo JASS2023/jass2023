@@ -26,6 +26,8 @@ class LEDSignalNode(DTROS):
                                                self.on_detect_construction_sign, queue_size=1)
         self.traffic_light_atags_sub = rospy.Subscriber("~traffic_light_ap_tag", std_msgs.msg.String,
                                                         self.on_detect_traffic_light, queue_size=1)
+        self.ducky_detection = rospy.Subscriber("~objects_detected_led_msg", std_msgs.msg.String,
+                                                        self.on_ducky_detected, queue_size=1)
 
     def on_detect_traffic_light(self, message):
         if message.data == "red":
@@ -36,6 +38,12 @@ class LEDSignalNode(DTROS):
     def on_detect_construction_sign(self, message):
         self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
         self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+
+    def on_ducky_detected(self, message):
+        if message.data == "obsticle":
+            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 1.0], [1.0, 0.0, 1.0]])
+        else:
+            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]])
 
     def change_color(self, led_pattern):
         '''

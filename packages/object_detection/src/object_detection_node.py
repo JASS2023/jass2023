@@ -13,17 +13,10 @@ from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
 
-COUNTER_FREQUENCY = 5
+COUNTER_FREQUENCY = 1
 
 IP = '192.168.0.43'
 PORT = 8080
-
-CASES = {1: 'on the oncomming trafic',
-            2: 'object on the way',
-            3: 'object in the roadside',
-            4: 'object is too far',
-            5: 'emergency stop',
-            0: 'nothing is on our way'}
 
 
 class ObjectDetectionNode(DTROS):
@@ -40,6 +33,11 @@ class ObjectDetectionNode(DTROS):
         self._detected_objs = rospy.Publisher(
             "~objects_detected", String, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
+
+        self._detected_objs_led_publisher = rospy.Publisher(
+            "~objects_detected_led_msg", String, queue_size=1, dt_topic_type=TopicType.DRIVER
+        )
+        self.flag_prev = 0
         
 
     def cb_image(self, msg) -> None:        
@@ -62,27 +60,51 @@ class ObjectDetectionNode(DTROS):
             
             self.log(response[4])
 
-            cases = {1: 'left',
+            cases = {1: 'nothing',
                      2: 'close',
-                     3: 'right',
-                     4: 'far',
-                     5: 'alarm',
+                     3: 'nothing',
+                     4: 'nothing',
+                     5: 'detected',
                      0: 'nothing'}
-            os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 0.0')
+
             reply = String()
-            obstacle_info = {}
-            obstacle_info["message"] = "discover_obstacle"
-            obstacle_info["id"] = -1
-            obstacle_info["timestamp"] = time()
-            obstacle_info["label"] = "duckie"
-            obstacle_info["duckieId"] = -1
+
+            obstacle_info = {
+            "message": "discover_obstacle",
+            "id": -1,
+            "timestamp": time(),
+            "label": "duckie",
+            "duckieId": -1,
+            "case": ''
+            }
+
             if response[4] == 5:
                 os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 0.0')
+                message = String()
+                message.data = "obsticle"
+                self._detected_objs_led_publisher.publish(message)
+                self.flag_prev = 0
             elif response[4] == 0:
-                os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
+                if self.flag_prev < 3:
+                    self.flag_prev += 1
+                elif self.flag_prev == 3:
+                    self.flag_prev += 2
+                    message = String()
+                    message.data = "empty"
+                    self._detected_objs_led_publisher.publish(message)
+                    print('empty')
+                    os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
                 obstacle_info["message"] = "nothing"
             else:
-                os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
+                if self.flag_prev < 3:
+                    self.flag_prev += 1
+                elif self.flag_prev == 3:
+                    self.flag_prev += 2
+                    message = String()
+                    message.data = "empty"
+                    self._detected_objs_led_publisher.publish(message)
+                    print('empty')
+                    os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
             obstacle_info["case"] = cases[response[4]]
             reply.data = json.dumps(obstacle_info)
             self.log(reply.data)
