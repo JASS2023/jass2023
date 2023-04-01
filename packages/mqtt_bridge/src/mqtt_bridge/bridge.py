@@ -79,8 +79,6 @@ class MqttToRosBridge(Bridge):
         self._topic_from = f"vehicle/{self.bot_name}/{self._topic_from}"
         self._msg_type = msg_type
         self._queue_size = queue_size
-        self.bot_name = os.environ["VEHICLE_NAME"]
-        self._topic_from = f"vehicle/{self.bot_name}/{self._topic_from}"
         self._last_published = rospy.get_time()
         self._interval = None if frequency is None else 1.0 / frequency
         # Adding the correct topic to subscribe to

@@ -3,7 +3,7 @@ import os
 import time
 import rospy
 import std_msgs
-import jsonify
+from json import loads
 
 from duckietown_msgs.msg import LEDPattern
 from std_msgs.msg import ColorRGBA, Int32MultiArray, Float32MultiArray, String
@@ -41,7 +41,7 @@ class LEDSignalNode(DTROS):
                                                         self.on_detect_traffic_light, queue_size=1)
 
         self.context_sub = rospy.Subscriber(
-            "~color", String, self.change_led, queue_size=1)
+            "~zone", String, self.change_led, queue_size=1)
 
         self.is_in_zone = 1
 
@@ -55,9 +55,15 @@ class LEDSignalNode(DTROS):
     """
 
     def change_led(self, msg):
-        if msg.data["value"] == "in_zone":
-            self.change_color(YELLOW, sleep_time=0.15)
-            self.change_color(BASIC, sleep_time=0.15)
+        
+        msg = loads(msg.data)
+        if msg["type"] != "zone":
+            return
+        
+        self.log(f"Received zone request: {msg}")
+        if msg["data"]["value"] == "in_zone":
+            self.change_color(YELLOW, sleep_time=0.5)
+            self.change_color(BASIC, sleep_time=0.5)
         else:
             self.change_color(BASIC)
 
