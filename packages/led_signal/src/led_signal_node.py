@@ -11,10 +11,12 @@ from std_msgs.msg import ColorRGBA, Int32MultiArray, Float32MultiArray, String
 from duckietown.dtros import DTROS, TopicType, NodeType
 
 YELLOW = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
-    0.0, 0.0, 0.0], [0.4, 0.3, 1], [1, 1, 0.1]]
+    0.0, 0.0, 0.0], [1, 1, 0.1], [1, 1, 0.1]]
 
-ORANGE = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0], [1, 0.6, 0], [1, 1, 1]]
+BLUE = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0], [1, 0.6, 0], [1, 0.6, 0]]
+
+GREEN = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]
 
 
 BASIC = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
@@ -61,26 +63,19 @@ class LEDSignalNode(DTROS):
         self.log("Received color change")
     
         msg = loads(msg.data)
+
         if msg["type"] != "zone":
             return
-        
-        # self.change_color(YELLOW, sleep_time=0.3)
-        # self.change_color(ORANGE, sleep_time=0.3)
-
-        # self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
-        #                   0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
-        # self.log(f"Received zone request: {msg}")
-        # self.change_color(YELLOW)
 
         if msg["data"]["value"] == "in_zone":
             self.already_sent = False
-            self.change_color(YELLOW, sleep_time=0.3)
-            self.change_color(ORANGE, sleep_time=0.3)
+            self.change_color(YELLOW, sleep_time=0.6)
+            self.change_color(BLUE, sleep_time=0.6)
             # self.change_color(BASIC, sleep_time=0.3)
         else:
             if not self.already_sent:
                 self.already_sent = True
-                self.change_color(BASIC)
+                self.change_color(GREEN)
 
 
     def on_detect_traffic_light(self, msg):
