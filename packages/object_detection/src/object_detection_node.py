@@ -70,13 +70,16 @@ class ObjectDetectionNode(DTROS):
             reply = String()
 
             obstacle_info = {
-            "message": "discover_obstacle",
-            "id": -1,
-            "timestamp": time(),
-            "label": "duckie",
-            "duckieId": -1,
-            "case": ''
-            }
+                            "type": "status_obstacle",
+                            "data": {
+                                "message": "nothing", 
+                                "id": -1,
+                                "timestamp": time(),
+                                "label": 'duckie',
+                                "duckieId": -1,
+                                "case": '' 
+                                }
+                            }
 
             if response[4] == 5:
                 os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 0.0')
@@ -84,25 +87,31 @@ class ObjectDetectionNode(DTROS):
                 message.data = "obsticle"
                 self._detected_objs_led_publisher.publish(message)
                 self.flag_prev = 0
+                obstacle_info["data"]["message"] = "discover_obstacle"
             elif response[4] == 0:
                 if self.flag_prev < 3:
                     self.flag_prev += 1
+                    obstacle_info["data"]["message"] = "discover_obstacle"
                 elif self.flag_prev == 3:
                     self.flag_prev += 2
                     message = String()
                     message.data = "empty"
+
                     self._detected_objs_led_publisher.publish(message)
                     print('empty')
                     os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
-                obstacle_info["message"] = "nothing"
+                    obstacle_info["data"]["message"] = "remove_obstacle"
+                
             else:
                 if self.flag_prev < 3:
                     self.flag_prev += 1
+                    obstacle_info["data"]["message"] = "discover_obstacle"
                 elif self.flag_prev == 3:
                     self.flag_prev += 2
                     message = String()
                     message.data = "empty"
                     self._detected_objs_led_publisher.publish(message)
+                    obstacle_info["data"]["message"] = "remove_obstacle"
                     print('empty')
                     os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
             obstacle_info["case"] = cases[response[4]]
