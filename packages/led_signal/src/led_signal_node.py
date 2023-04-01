@@ -12,6 +12,7 @@ from duckietown.dtros import DTROS, TopicType, NodeType
 
 YELLOW = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
     0.0, 0.0, 0.0], [0.4, 0.3, 1], [1, 1, 0.1]]
+
 ORANGE = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0], [1, 0.6, 0], [1, 1, 1]]
 
@@ -55,15 +56,24 @@ class LEDSignalNode(DTROS):
     """
 
     def change_led(self, msg):
-        
+        self.log("Received color change")
+    
         msg = loads(msg.data)
         if msg["type"] != "zone":
             return
         
-        self.log(f"Received zone request: {msg}")
+        # self.change_color(YELLOW, sleep_time=0.3)
+        # self.change_color(ORANGE, sleep_time=0.3)
+
+        # self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+        #                   0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+        # self.log(f"Received zone request: {msg}")
+        # self.change_color(YELLOW)
+
         if msg["data"]["value"] == "in_zone":
-            self.change_color(YELLOW, sleep_time=0.5)
-            self.change_color(BASIC, sleep_time=0.5)
+            self.change_color(YELLOW, sleep_time=0.3)
+            self.change_color(ORANGE, sleep_time=0.3)
+            # self.change_color(BASIC, sleep_time=0.3)
         else:
             self.change_color(BASIC)
 
@@ -81,6 +91,7 @@ class LEDSignalNode(DTROS):
                           0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
         self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
                           0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+
 
     def change_color(self, led_pattern, sleep_time=1):
         '''
