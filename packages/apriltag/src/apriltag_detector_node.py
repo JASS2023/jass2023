@@ -172,7 +172,7 @@ def find_mean_hue(image):
             # else:
             #     _sum += element[0]
     # return _sum // counter
-    if red > green:
+    if red - 20 > green:
         print(f'Red: {red}')
         print(f'Green: {green}')
         return 1
