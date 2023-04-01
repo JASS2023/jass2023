@@ -10,6 +10,7 @@
 	        <remap from="led_signal_node/construction_ap_tag" to="apriltag_detector_node/construction_ap_tag"/>
 	        <remap from="led_signal_node/traffic_light_ap_tag" to="apriltag_detector_node/traffic_light_ap_tag"/>
 <!-- 			<rosparam command="load" file="$(find led_signal)/config/$(arg node_name)/$(arg param_file_name).yaml"/> -->
+			<remap from="led_signal_node/zone" to="mqtt_bridge/back" />
 			<param name="robot_type" value="$(arg robot_type)"/>
 		</node>
 	</group>

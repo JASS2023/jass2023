@@ -3,37 +3,100 @@ import os
 import time
 import rospy
 import std_msgs
+from json import loads
 
-from duckietown_msgs.srv import SetCustomLEDPattern, ChangePattern
-from duckietown_msgs.srv import SetCustomLEDPatternResponse, ChangePatternResponse
 from duckietown_msgs.msg import LEDPattern
-from std_msgs.msg import ColorRGBA
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import ColorRGBA, Int32MultiArray, Float32MultiArray, String
 
 from duckietown.dtros import DTROS, TopicType, NodeType
+
+YELLOW = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+    0.0, 0.0, 0.0], [0.4, 0.3, 1], [1, 1, 0.1]]
+
+ORANGE = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
+          [0.0, 0.0, 0.0], [1, 0.6, 0], [1, 1, 1]]
+
+
+BASIC = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+    0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
 
 
 class LEDSignalNode(DTROS):
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LEDSignalNode, self).__init__(node_name=node_name, node_type=NodeType.DRIVER)
+        super(LEDSignalNode, self).__init__(
+            node_name=node_name, node_type=NodeType.DRIVER)
+
         self.LEDsPattern = [[0.0, 0.0, 1.0]] * 5
+        self.already_sent = True
+        # Publisher
         self.pub_leds = rospy.Publisher(
             "~led_pattern", LEDPattern, queue_size=1, dt_topic_type=TopicType.DRIVER
         )
 
+        # Subscriber
         self.april_tags_sub = rospy.Subscriber("~construction_ap_tag", Int32MultiArray,
                                                self.on_detect_construction_sign, queue_size=1)
+
         self.traffic_light_atags_sub = rospy.Subscriber("~traffic_light_ap_tag", std_msgs.msg.String,
                                                         self.on_detect_traffic_light, queue_size=1)
         self.ducky_detection = rospy.Subscriber("~objects_detected_led_msg", std_msgs.msg.String,
                                                         self.on_ducky_detected, queue_size=1)
 
-    def on_detect_traffic_light(self, message):
-        if message.data == "red":
-            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+        self.context_sub = rospy.Subscriber(
+            "~zone", String, self.change_led, queue_size=1)
+
+        self.is_in_zone = 1
+
+    """
+    {   
+        "type": "zone",
+        "data": {
+            "value": STRING
+        }
+    }
+    """
+
+    def change_led(self, msg):
+        self.log("Received color change")
+    
+        msg = loads(msg.data)
+        if msg["type"] != "zone":
+            return
+        
+        # self.change_color(YELLOW, sleep_time=0.3)
+        # self.change_color(ORANGE, sleep_time=0.3)
+
+        # self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+        #                   0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+        # self.log(f"Received zone request: {msg}")
+        # self.change_color(YELLOW)
+
+        if msg["data"]["value"] == "in_zone":
+            self.already_sent = False
+            self.change_color(YELLOW, sleep_time=0.3)
+            self.change_color(ORANGE, sleep_time=0.3)
+            # self.change_color(BASIC, sleep_time=0.3)
         else:
-            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+            if not self.already_sent:
+                self.already_sent = True
+                self.change_color(BASIC)
+
+
+    def on_detect_traffic_light(self, msg):
+        if msg.data == "red":
+            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+                              0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+        else:
+            self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+                              0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+
+    def on_detect_construction_sign(self, msg):
+        self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+                          0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+        self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [
+                          0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, 1.0]])
+
 
     def on_detect_construction_sign(self, message):
         self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.0, 0.47, 0.0], [1.0, 0.47, 0.0]])
@@ -47,7 +110,8 @@ class LEDSignalNode(DTROS):
         else:
             self.change_color([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]])
 
-    def change_color(self, led_pattern):
+
+    def change_color(self, led_pattern, sleep_time=1):
         '''
 
         Args:
@@ -57,9 +121,9 @@ class LEDSignalNode(DTROS):
 
         '''
         self.LEDsPattern = led_pattern
-        self.publish_led()
+        self.publish_led(sleep_time)
 
-    def publish_led(self):
+    def publish_led(self, sleep_time=1):
         """
         Publishes new colors for LEDs into /{bot_name}/led_emitter/led_pattern topic
         """
@@ -73,7 +137,7 @@ class LEDSignalNode(DTROS):
                 rgba.a = 1.0
                 LEDPattern_msg.rgb_vals.append(rgba)
                 self.pub_leds.publish(LEDPattern_msg)
-            rospy.sleep(1)
+            rospy.sleep(sleep_time)
 
 
 if __name__ == "__main__":
