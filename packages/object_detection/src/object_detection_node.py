@@ -74,7 +74,7 @@ class ObjectDetectionNode(DTROS):
                             "data": {
                                 "message": "nothing", 
                                 "id": -1,
-                                "timestamp": time(),
+                                "timestamp": '',
                                 "label": 'duckie',
                                 "duckieId": -1,
                                 "case": '' 
@@ -114,7 +114,6 @@ class ObjectDetectionNode(DTROS):
                     obstacle_info["data"]["message"] = "remove_obstacle"
                     print('empty')
                     os.system(f'rosparam set /{os.environ["VEHICLE_NAME"]}/kinematics_node/gain 1.0')
-            obstacle_info["case"] = cases[response[4]]
             reply.data = json.dumps(obstacle_info)
             self.log(reply.data)
             self._detected_objs.publish(reply)
